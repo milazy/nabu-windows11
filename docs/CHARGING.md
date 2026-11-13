@@ -16,3 +16,20 @@ Plan:
 3. Only raise limits inside the tablet's rated 33 W and the battery's charge-current limit, step by step, with temperature
    checks; never bypass thermal or battery protection.
 4. If no setting exists: a KMDF filter/driver that negotiates HVDCP/PD and programs the charger within those limits.
+
+## Measurements on this tablet (UGREEN 120 W USB-PD charger, screen on)
+Windows.Devices.Power.Battery aggregate report, 5 s samples:
+
+| USB role (`HKLM\SYSTEM\CurrentControlSet\Enum\ACPI\QCOM0597\0\Device Parameters\RoleSwitchMode`) | Net battery rate |
+|---|---|
+| 3 (default after install, host controller active) | −8 … −54 mW while "Charging"; −9 W when the input dropped. Battery report: AC/Battery flipping every few seconds |
+| **2 (USB function / device mode)** | **+6651 mW** steady |
+
+Setting it (as Administrator), then the controller restarts:
+```
+Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Enum\ACPI\QCOM0597\0\Device Parameters' RoleSwitchMode 2 -Type DWord
+pnputil /restart-device "ACPI\QCOM0597\0"
+```
+(same mechanism as n00b69/usbhostmode: 1 = host, 2 = function). Trade-off: USB devices plugged into the tablet do not work in mode 2.
++6.65 W net with the screen on means roughly 13–15 W in: about 5 V / 3 A (Type-C current), not a PD contract.
+Next: PD negotiation (9 V) through the PMIC Type-C/PD block, within the 33 W rating.
