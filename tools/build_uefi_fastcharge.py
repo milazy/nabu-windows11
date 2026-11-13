@@ -12,12 +12,16 @@ inner = bytearray(lzma.LZMADecompressor(format=lzma.FORMAT_ALONE).decompress(byt
 DS = 5178128
 L = struct.unpack('<I', inner[DS+4:DS+8])[0]
 dsdt = bytearray(inner[DS:DS+L])
-patches = [
+import os
+SEL=os.environ.get('SEL','pdo,iwall').split(',')
+patches_all = [
   # USB-C sink PDOs: 5V/3A, 9V/2A, 12V/1.5A  ->  5V/3A, 9V/3A, 12V/1.5A  (27 W max, tablet rated 33 W)
-  (bytes.fromhex('0c2c9101000cc8d002000c96c00300'), bytes.fromhex('0c2c9101000c2cd102000c96c00300')),
+  (bytes.fromhex('0c2c9101000cc8d002000c96c00300'), bytes.fromhex('0c2c9101000c2cd102000c96c00300'), 'pdo'),
   # BPCH {HVDCP 2100, HVDCPv3 3000, IWall 1500} -> IWall 3000
-  (bytes.fromhex('0b34080bb80b0bdc05'), bytes.fromhex('0b34080bb80b0bb80b')),
+  (bytes.fromhex('0b34080bb80b0bdc05'), bytes.fromhex('0b34080bb80b0bb80b'), 'iwall'),
 ]
+patches=[(a,b) for a,b,n in patches_all if n in SEL]
+print('patches',SEL)
 for a,b in patches:
     assert dsdt.count(a) == 1 and len(a) == len(b); i = dsdt.find(a); dsdt[i:i+len(a)] = b
 dsdt[9] = 0; dsdt[9] = (-sum(dsdt)) & 0xff

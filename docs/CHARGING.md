@@ -63,3 +63,10 @@ either CAD MaxCurrent (1500 mA at 12 V) or IWallChargerCurrent (1500 mA).
 sink PDO 9 V/2 A → 9 V/3 A (27 W, below the 33 W rating) and IWallChargerCurrent 1500 → 3000 mA.
 JEITA, foldback, BCL and Type-C thermal mitigation are untouched. Test with `fastboot boot`
 (nothing is flashed; a normal reboot returns to the stock nSB UEFI).
+
+### Test 1 result (PDO 9 V/3 A + IWall 3000 together) — rejected
+
+PD contract became **9 V / 3000 mA (Flag=2)**, but the battery kept **discharging** at about −2…−3 W
+while plugged in (system ≈ 5 W, so only about 3 W was drawn from the charger). The temperature stayed
+at 33–34 °C. Next: separate tests, A = PDO 9 V/3 A only, B = IWall 3000 only
+(`SEL=pdo` / `SEL=iwall` in `tools/build_uefi_fastcharge.py`).
